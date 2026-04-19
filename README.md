@@ -13,6 +13,35 @@
 
 Oracle bundles your prompt and files so another AI can answer with real context. It speaks GPT-5.4 Pro (default), GPT-5.4, GPT-5.1 Pro, GPT-5.1 Codex (API-only), GPT-5.1, GPT-5.2, Gemini 3.1 Pro (API-only), Gemini 3 Pro, Claude Sonnet 4.5, Claude Opus 4.1, and more—and it can ask one or multiple models in a single run. Browser automation is available; use `--browser-model-strategy current` to keep the active ChatGPT model (or `ignore` to skip the picker). API remains the most reliable path, and `--copy` is an easy manual fallback.
 
+## Fork Changes (orange4664)
+
+This fork adds **Conversation URL output** for browser mode. After each conversation, the ChatGPT conversation URL (`https://chatgpt.com/c/xxx`) is displayed in the CLI output and returned to remote clients / MCP callers, making it easy to continue conversations with `--chatgpt-url`.
+
+### Install from this fork
+
+```bash
+npm install -g github:orange4664/oracle
+```
+
+### What changed
+
+- `remote/server.ts`: `sanitizeResult()` now passes `tabUrl` to remote clients
+- `browser/sessionRunner.ts`: Return value and CLI output include `tabUrl` (Conversation URL)
+- `mcp/tools/consult.ts`: MCP `structuredContent` includes `tabUrl`
+
+### Continue a conversation (browser mode)
+
+```bash
+# First message — output will show "Conversation URL: https://chatgpt.com/c/xxx"
+oracle --engine browser -p "Your question"
+
+# Continue using the URL from the output
+oracle --engine browser --chatgpt-url "https://chatgpt.com/c/xxx" -p "Follow-up question"
+
+# Also works remotely
+oracle --remote-host IP:3080 --remote-token YOUR_TOKEN --chatgpt-url "https://chatgpt.com/c/xxx" -p "Follow-up"
+```
+
 ## Setting up (macOS Browser Mode)
 
 Browser mode lets you use GPT-5.4 Pro without any API keys — it automates your Chrome browser directly.

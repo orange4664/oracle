@@ -19,6 +19,7 @@ export interface BrowserExecutionResult {
   elapsedMs: number;
   runtime: BrowserRuntimeMetadata;
   answerText: string;
+  tabUrl?: string;
 }
 
 interface RunBrowserSessionArgs {
@@ -125,6 +126,10 @@ export async function runBrowserSessionExecution(
   if (!runOptions.silent) {
     log(chalk.bold("Answer:"));
     log(browserResult.answerMarkdown || browserResult.answerText || chalk.dim("(no text output)"));
+    if (browserResult.tabUrl) {
+      log("");
+      log(chalk.dim(`Conversation URL: ${browserResult.tabUrl}`));
+    }
     log("");
   }
   const answerText = browserResult.answerMarkdown || browserResult.answerText || "";
@@ -168,7 +173,9 @@ export async function runBrowserSessionExecution(
       chromeHost: browserResult.chromeHost,
       userDataDir: browserResult.userDataDir,
       controllerPid: browserResult.controllerPid ?? process.pid,
+      tabUrl: browserResult.tabUrl,
     },
     answerText,
+    tabUrl: browserResult.tabUrl,
   };
 }

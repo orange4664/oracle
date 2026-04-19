@@ -369,6 +369,7 @@ export function registerConsultTool(server: McpServer): void {
             status: finalMeta.status,
             output: logTail ?? "",
             models: modelsSummary,
+            tabUrl: finalMeta.browser?.runtime?.tabUrl ?? undefined,
           },
         };
       } catch (error) {
