@@ -63,6 +63,8 @@ export async function createRemoteServer(
 ): Promise<RemoteServerInstance> {
   const runBrowser = deps.runBrowser ?? runBrowserMode;
   const server = http.createServer();
+  server.keepAliveTimeout = 0;
+  server.headersTimeout = 0;
   const logger = options.logger ?? console.log;
   const authToken = options.token ?? randomBytes(16).toString("hex");
   const startedAt = Date.now();
@@ -115,6 +117,8 @@ export async function createRemoteServer(
       res.end();
       return;
     }
+
+    req.socket.setKeepAlive(true, 30_000);
 
     const authHeader = req.headers.authorization ?? "";
     if (authHeader !== `Bearer ${authToken}`) {
@@ -268,7 +272,7 @@ export async function createRemoteServer(
 export async function serveRemote(options: RemoteServerOptions = {}): Promise<void> {
   const manualProfileDir =
     options.manualLoginProfileDir ?? path.join(os.homedir(), ".oracle", "browser-profile");
-  const preferManualLogin = options.manualLoginDefault || process.platform === "win32" || isWsl();
+  const preferManualLogin = options.manualLoginDefault || process.platform === "win32" || isWsl() || process.env.ORACLE_SERVE_MANUAL_LOGIN === "1";
   let cookies: CookieParam[] | null = null;
   let opened = false;
 
@@ -583,7 +587,7 @@ async function launchManualLoginChrome(
   url: string,
   logger: (msg: string) => void,
 ): Promise<void> {
-  const timeoutMs = 7000;
+  const timeoutMs = 30000;
   let finished = false;
   const timeout = setTimeout(() => {
     if (!finished) {
@@ -607,9 +611,10 @@ async function launchManualLoginChrome(
       chromeFlags: [
         "--no-first-run",
         "--no-default-browser-check",
+        "--no-sandbox",
         `--user-data-dir=${profileDir}`,
         "--remote-allow-origins=*",
-        `--remote-debugging-port=${debugPort}`, // ensure DevToolsActivePort is written even on Windows
+        `--remote-debugging-port=${debugPort}`,
       ],
     });
 

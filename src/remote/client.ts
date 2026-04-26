@@ -81,6 +81,13 @@ export function createRemoteBrowserExecutor({ host, token }: RemoteExecutorOptio
           });
         },
       );
+      req.on("socket", (socket) => {
+        socket.setKeepAlive(true, 30_000);
+        socket.setTimeout(20 * 60 * 1000);
+        socket.on("timeout", () => {
+          req.destroy(new Error("Remote connection timed out (no data for 20 minutes)"));
+        });
+      });
       req.on("error", reject);
       req.write(body);
       req.end();

@@ -42,6 +42,7 @@ import { uploadAttachmentViaDataTransfer } from "./actions/remoteFileTransfer.js
 import { ensureThinkingTime } from "./actions/thinkingTime.js";
 import { estimateTokenCount, withRetries, delay } from "./utils.js";
 import { formatElapsed } from "../oracle/format.js";
+import { startHeartbeat } from "../heartbeat.js";
 import { CHATGPT_URL, CONVERSATION_TURN_SELECTOR, DEFAULT_MODEL_STRATEGY } from "./constants.js";
 import type { LaunchedChrome } from "chrome-launcher";
 import { BrowserAutomationError } from "../oracle/errors.js";
@@ -725,6 +726,13 @@ export async function runBrowserMode(options: BrowserRunOptions): Promise<Browse
       logger("Recovered assistant response after delayed recheck");
       return rechecked;
     };
+    const stopHeartbeat = startHeartbeat({
+      intervalMs: options.heartbeatIntervalMs,
+      log: (msg: string) => logger(msg),
+      isActive: () => true,
+      makeMessage: (elapsed: number) =>
+        `Waiting for assistant response... (${Math.round(elapsed / 1000)}s)`,
+    });
     try {
       answer = await raceWithDisconnect(
         waitForAssistantResponseWithReload(
@@ -762,6 +770,8 @@ export async function runBrowserMode(options: BrowserRunOptions): Promise<Browse
       } else {
         throw error;
       }
+    } finally {
+      stopHeartbeat();
     }
     // Ensure we store the final conversation URL even if the UI updated late.
     await updateConversationHint("post-response", 15_000);
