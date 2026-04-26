@@ -19,9 +19,23 @@ This fork adds **Conversation URL output** for browser mode. After each conversa
 
 ### Install from this fork
 
+**macOS / Linux:**
+
 ```bash
 npm install -g github:orange4664/oracle
 ```
+
+**Windows (manual build required — npm cannot prepare pnpm projects from Git):**
+
+```bash
+git clone https://github.com/orange4664/oracle.git oracle-install-temp
+cd oracle-install-temp
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run build
+npm install -g --ignore-scripts .
+```
+
+After installation, use `oracle.cmd` (or `oracle-mcp.cmd`) in PowerShell since the default execution policy blocks `.ps1` shims.
 
 ### What changed
 
