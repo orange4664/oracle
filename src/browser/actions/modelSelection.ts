@@ -100,15 +100,19 @@ function buildModelSelectionExpression(
       .map((token) => normalizeText(token))
       .filter(Boolean);
     const targetWords = normalizedTarget.split(' ').filter(Boolean);
-    const desiredVersion = normalizedTarget.includes('5 4')
-      ? '5-4'
-      : normalizedTarget.includes('5 2')
-        ? '5-2'
-        : normalizedTarget.includes('5 1')
-          ? '5-1'
-          : normalizedTarget.includes('5 0')
-            ? '5-0'
-            : null;
+    const desiredVersion = normalizedTarget.includes('5 5')
+      ? '5-5'
+      : normalizedTarget.includes('5 4')
+        ? '5-4'
+        : normalizedTarget.includes('5 3')
+          ? '5-3'
+          : normalizedTarget.includes('5 2')
+            ? '5-2'
+            : normalizedTarget.includes('5 1')
+              ? '5-1'
+              : normalizedTarget.includes('5 0')
+                ? '5-0'
+                : null;
     const wantsPro = normalizedTarget.includes(' pro') || normalizedTarget.endsWith(' pro') || normalizedTokens.includes('pro');
     const wantsInstant = normalizedTarget.includes('instant');
     const wantsThinking = normalizedTarget.includes('thinking');
@@ -146,7 +150,9 @@ function buildModelSelectionExpression(
       const normalizedLabel = normalizeText(getButtonLabel());
       if (!normalizedLabel) return false;
       if (desiredVersion) {
+        if (desiredVersion === '5-5' && !normalizedLabel.includes('5 5')) return false;
         if (desiredVersion === '5-4' && !normalizedLabel.includes('5 4')) return false;
+        if (desiredVersion === '5-3' && !normalizedLabel.includes('5 3')) return false;
         if (desiredVersion === '5-2' && !normalizedLabel.includes('5 2')) return false;
         if (desiredVersion === '5-1' && !normalizedLabel.includes('5 1')) return false;
         if (desiredVersion === '5-0' && !normalizedLabel.includes('5 0')) return false;
@@ -223,13 +229,25 @@ function buildModelSelectionExpression(
             normalizedTestId.includes('gpt-5-1') ||
             normalizedTestId.includes('gpt-5.1') ||
             normalizedTestId.includes('gpt51');
+          const has55 =
+            normalizedTestId.includes('5-5') ||
+            normalizedTestId.includes('5.5') ||
+            normalizedTestId.includes('gpt-5-5') ||
+            normalizedTestId.includes('gpt-5.5') ||
+            normalizedTestId.includes('gpt55');
+          const has53 =
+            normalizedTestId.includes('5-3') ||
+            normalizedTestId.includes('5.3') ||
+            normalizedTestId.includes('gpt-5-3') ||
+            normalizedTestId.includes('gpt-5.3') ||
+            normalizedTestId.includes('gpt53');
           const has50 =
             normalizedTestId.includes('5-0') ||
             normalizedTestId.includes('5.0') ||
             normalizedTestId.includes('gpt-5-0') ||
             normalizedTestId.includes('gpt-5.0') ||
             normalizedTestId.includes('gpt50');
-          const candidateVersion = has54 ? '5-4' : has52 ? '5-2' : has51 ? '5-1' : has50 ? '5-0' : null;
+          const candidateVersion = has55 ? '5-5' : has54 ? '5-4' : has53 ? '5-3' : has52 ? '5-2' : has51 ? '5-1' : has50 ? '5-0' : null;
           // If a candidate advertises a different version, ignore it entirely.
           if (candidateVersion && candidateVersion !== desiredVersion) {
             return 0;
@@ -514,6 +532,44 @@ function buildModelMatchersLiteral(targetModel: string): {
     testIdTokens.add("gpt5-2");
     testIdTokens.add("gpt52");
   }
+  // Numeric variations (5.5 ↔ 55 ↔ gpt-5-5)
+  if (base.includes("5.5") || base.includes("5-5") || base.includes("55")) {
+    push("5.5", labelTokens);
+    push("gpt-5.5", labelTokens);
+    push("gpt5.5", labelTokens);
+    push("gpt-5-5", labelTokens);
+    push("gpt5-5", labelTokens);
+    push("gpt55", labelTokens);
+    push("chatgpt 5.5", labelTokens);
+    if (base.includes("thinking")) {
+      push("thinking", labelTokens);
+      testIdTokens.add("model-switcher-gpt-5-5-thinking");
+      testIdTokens.add("gpt-5-5-thinking");
+      testIdTokens.add("gpt-5.5-thinking");
+    }
+    if (!base.includes("thinking") && !base.includes("pro")) {
+      testIdTokens.add("model-switcher-gpt-5-5");
+    }
+    testIdTokens.add("gpt-5-5");
+    testIdTokens.add("gpt5-5");
+    testIdTokens.add("gpt55");
+  }
+  // Numeric variations (5.3 ↔ 53 ↔ gpt-5-3)
+  if (base.includes("5.3") || base.includes("5-3") || base.includes("53")) {
+    push("5.3", labelTokens);
+    push("gpt-5.3", labelTokens);
+    push("gpt5.3", labelTokens);
+    push("gpt-5-3", labelTokens);
+    push("gpt5-3", labelTokens);
+    push("gpt53", labelTokens);
+    push("chatgpt 5.3", labelTokens);
+    if (!base.includes("pro")) {
+      testIdTokens.add("model-switcher-gpt-5-3");
+    }
+    testIdTokens.add("gpt-5-3");
+    testIdTokens.add("gpt5-3");
+    testIdTokens.add("gpt53");
+  }
   // Pro / research variants
   if (base.includes("pro")) {
     push("proresearch", labelTokens);
@@ -533,6 +589,17 @@ function buildModelMatchersLiteral(targetModel: string): {
       testIdTokens.add("gpt-5.0-pro");
       testIdTokens.add("gpt-5-0-pro");
       testIdTokens.add("gpt50pro");
+    }
+    if (base.includes("5.5") || base.includes("5-5") || base.includes("55")) {
+      testIdTokens.add("model-switcher-gpt-5-5-pro");
+      testIdTokens.add("gpt-5.5-pro");
+      testIdTokens.add("gpt-5-5-pro");
+      testIdTokens.add("gpt55pro");
+    }
+    if (base.includes("5.3") || base.includes("5-3") || base.includes("53")) {
+      testIdTokens.add("gpt-5.3-pro");
+      testIdTokens.add("gpt-5-3-pro");
+      testIdTokens.add("gpt53pro");
     }
     if (base.includes("5.2") || base.includes("5-2") || base.includes("52")) {
       testIdTokens.add("gpt-5.2-pro");
