@@ -147,21 +147,23 @@ function buildModelSelectionExpression(
       return { status: 'already-selected', label: getButtonLabel() };
     }
     const buttonMatchesTarget = () => {
-      const normalizedLabel = normalizeText(getButtonLabel());
-      if (!normalizedLabel) return false;
+      const rawLabel = getButtonLabel().toLowerCase();
+      const normalizedLabel = normalizeText(rawLabel);
+      const localizedProLabel = rawLabel.includes('进阶专业') || rawLabel.includes('進階專業');
+      if (!normalizedLabel && !localizedProLabel) return false;
       if (desiredVersion) {
-        if (desiredVersion === '5-5' && !normalizedLabel.includes('5 5')) return false;
+        if (desiredVersion === '5-5' && !normalizedLabel.includes('5 5') && !localizedProLabel) return false;
         if (desiredVersion === '5-4' && !normalizedLabel.includes('5 4')) return false;
         if (desiredVersion === '5-3' && !normalizedLabel.includes('5 3')) return false;
         if (desiredVersion === '5-2' && !normalizedLabel.includes('5 2')) return false;
         if (desiredVersion === '5-1' && !normalizedLabel.includes('5 1')) return false;
         if (desiredVersion === '5-0' && !normalizedLabel.includes('5 0')) return false;
       }
-      if (wantsPro && !normalizedLabel.includes(' pro')) return false;
+      if (wantsPro && !normalizedLabel.includes(' pro') && !localizedProLabel) return false;
       if (wantsInstant && !normalizedLabel.includes('instant')) return false;
       if (wantsThinking && !normalizedLabel.includes('thinking')) return false;
       // Also reject if button has variants we DON'T want
-      if (!wantsPro && normalizedLabel.includes(' pro')) return false;
+      if (!wantsPro && (normalizedLabel.includes(' pro') || localizedProLabel)) return false;
       if (!wantsInstant && normalizedLabel.includes('instant')) return false;
       if (!wantsThinking && normalizedLabel.includes('thinking')) return false;
       return true;
