@@ -7,7 +7,10 @@ import { runBrowserMode } from "../browserMode.js";
 import type { BrowserRunResult } from "../browserMode.js";
 import { assembleBrowserPrompt } from "./prompt.js";
 import { BrowserAutomationError } from "../oracle/errors.js";
-import type { BrowserLogger } from "./types.js";
+import type { BrowserLogger, BrowserRunArtifact } from "./types.js";
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import path from "node:path";
 
 export interface BrowserExecutionResult {
   usage: {
@@ -20,6 +23,8 @@ export interface BrowserExecutionResult {
   runtime: BrowserRuntimeMetadata;
   answerText: string;
   tabUrl?: string;
+  artifacts?: BrowserRunArtifact[];
+  savedArtifacts?: string[];
 }
 
 interface RunBrowserSessionArgs {
@@ -109,6 +114,7 @@ export async function runBrowserSessionExecution(
       log: automationLogger,
       heartbeatIntervalMs: runOptions.heartbeatIntervalMs,
       verbose: runOptions.verbose,
+      downloadArtifacts: Boolean(runOptions.downloadArtifactsDir),
       runtimeHintCb: async (runtime) => {
         await persistRuntimeHint({
           ...runtime,
@@ -132,6 +138,11 @@ export async function runBrowserSessionExecution(
     }
     log("");
   }
+  const savedArtifacts = await writeBrowserArtifacts(
+    runOptions.downloadArtifactsDir,
+    browserResult.artifacts,
+    log,
+  );
   const answerText = browserResult.answerMarkdown || browserResult.answerText || "";
   const usage = {
     inputTokens: promptArtifacts.estimatedInputTokens,
@@ -177,5 +188,48 @@ export async function runBrowserSessionExecution(
     },
     answerText,
     tabUrl: browserResult.tabUrl,
+    artifacts: browserResult.artifacts,
+    savedArtifacts,
   };
+}
+
+async function writeBrowserArtifacts(
+  targetDir: string | undefined,
+  artifacts: BrowserRunArtifact[] | undefined,
+  log: (message?: string) => void,
+): Promise<string[]> {
+  if (!targetDir || !Array.isArray(artifacts) || artifacts.length === 0) {
+    return [];
+  }
+  const normalizedTarget = path.resolve(targetDir);
+  await fsp.mkdir(normalizedTarget, { recursive: true });
+  const saved: string[] = [];
+  for (let index = 0; index < artifacts.length; index += 1) {
+    const artifact = artifacts[index];
+    if (!artifact?.contentBase64) continue;
+    const fileName = sanitizeArtifactFileName(artifact.fileName || `artifact-${index + 1}.bin`);
+    const targetPath = uniqueArtifactPath(normalizedTarget, fileName);
+    await fsp.writeFile(targetPath, Buffer.from(artifact.contentBase64, "base64"));
+    saved.push(targetPath);
+    log(chalk.dim(`Saved browser artifact to ${targetPath}`));
+  }
+  return saved;
+}
+
+function sanitizeArtifactFileName(fileName: string): string {
+  const cleaned = fileName.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+  return cleaned || "artifact.bin";
+}
+
+function uniqueArtifactPath(dir: string, fileName: string): string {
+  const parsed = path.parse(fileName);
+  const base = parsed.name || "artifact";
+  const ext = parsed.ext || "";
+  let candidate = path.join(dir, `${base}${ext}`);
+  let counter = 2;
+  while (fs.existsSync(candidate)) {
+    candidate = path.join(dir, `${base}-${counter}${ext}`);
+    counter += 1;
+  }
+  return candidate;
 }

@@ -16,6 +16,7 @@ export interface RemoteRunPayload {
   options: {
     heartbeatIntervalMs?: number;
     verbose?: boolean;
+    downloadArtifacts?: boolean;
   };
 }
 

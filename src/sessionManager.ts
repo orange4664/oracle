@@ -125,6 +125,7 @@ export interface StoredRunOptions {
   effectiveModelId?: string;
   renderPlain?: boolean;
   writeOutputPath?: string;
+  downloadArtifactsDir?: string;
   timeoutSeconds?: number | "auto";
   httpTimeoutMs?: number;
   zombieTimeoutMs?: number;
@@ -162,6 +163,7 @@ export interface SessionMetadata {
   errorMessage?: string;
   elapsedMs?: number;
   browser?: BrowserMetadata;
+  artifacts?: Array<{ path: string }>;
   response?: SessionResponseMetadata;
   transport?: SessionTransportMetadata;
   error?: SessionUserErrorMetadata;

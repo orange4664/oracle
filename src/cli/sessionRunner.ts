@@ -130,6 +130,10 @@ export async function performSessionRun({
           config: browserConfig,
           runtime: result.runtime,
         },
+        artifacts:
+          result.savedArtifacts && result.savedArtifacts.length > 0
+            ? result.savedArtifacts.map((artifactPath) => ({ path: artifactPath }))
+            : undefined,
         response: undefined,
         transport: undefined,
         error: undefined,
