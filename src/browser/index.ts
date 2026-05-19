@@ -9,6 +9,7 @@ import type {
   BrowserLogger,
   ChromeClient,
   BrowserAttachment,
+  BrowserRunArtifact,
 } from "./types.js";
 import {
   launchChrome,
@@ -932,10 +933,19 @@ export async function runBrowserMode(options: BrowserRunOptions): Promise<Browse
     const durationMs = Date.now() - startedAt;
     const answerChars = answerText.length;
     const answerTokens = estimateTokenCount(answerMarkdown);
+    const artifacts = options.downloadArtifacts
+      ? await collectBrowserArtifacts(Runtime, logger).catch((error) => {
+          logger(
+            `Artifact capture failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          return [];
+        })
+      : undefined;
     return {
       answerText,
       answerMarkdown,
       answerHtml: answerHtml.length > 0 ? answerHtml : undefined,
+      artifacts,
       tookMs: durationMs,
       answerTokens,
       answerChars,
@@ -1200,6 +1210,160 @@ async function maybeRecoverLongAssistantResponse({
     };
   }
   return { answerText, answerMarkdown };
+}
+
+async function collectBrowserArtifacts(
+  runtime: ChromeClient["Runtime"],
+  logger: BrowserLogger,
+): Promise<BrowserRunArtifact[]> {
+  const expression = String.raw`(async () => {
+    const maxArtifacts = 4;
+    const maxBytes = 20 * 1024 * 1024;
+    const imageExtensions = /\.(png|jpe?g|webp|gif)(\?|#|$)/i;
+    const candidates = [];
+    const seen = new Set();
+    const push = (entry) => {
+      if (!entry || !entry.url) return;
+      const url = String(entry.url);
+      if (seen.has(url)) return;
+      seen.add(url);
+      candidates.push({
+        url,
+        alt: entry.alt ? String(entry.alt).slice(0, 120) : undefined,
+        text: entry.text ? String(entry.text).slice(0, 160) : undefined,
+      });
+    };
+    const nodes = Array.from(document.querySelectorAll('img, a[href], source[src], video[poster]'));
+    for (const node of nodes) {
+      if (node instanceof HTMLImageElement) {
+        const rect = node.getBoundingClientRect();
+        const src = node.currentSrc || node.src;
+        if (
+          src &&
+          (rect.width >= 96 || rect.height >= 96 || src.startsWith('blob:') || src.startsWith('data:') || imageExtensions.test(src))
+        ) {
+          push({ url: src, alt: node.alt });
+        }
+      } else if (node instanceof HTMLAnchorElement) {
+        const href = node.href || node.getAttribute('href') || '';
+        const text = node.textContent || node.getAttribute('download') || '';
+        if (
+          href &&
+          (href.startsWith('blob:') ||
+            href.startsWith('data:image/') ||
+            href.startsWith('sandbox:') ||
+            imageExtensions.test(href) ||
+            /\.(png|jpe?g|webp|gif)$/i.test(text))
+        ) {
+          push({ url: href, text });
+        }
+      } else if (node instanceof HTMLSourceElement) {
+        push({ url: node.src });
+      } else if (node instanceof HTMLVideoElement && node.poster) {
+        push({ url: node.poster });
+      }
+    }
+    const mimeToExt = (mime) => {
+      const normalized = String(mime || '').split(';')[0].trim().toLowerCase();
+      if (normalized === 'image/jpeg') return 'jpg';
+      if (normalized === 'image/png') return 'png';
+      if (normalized === 'image/webp') return 'webp';
+      if (normalized === 'image/gif') return 'gif';
+      return 'bin';
+    };
+    const urlExt = (url, mime) => {
+      const match = String(url || '').match(/\.([a-z0-9]{2,5})(?:[?#]|$)/i);
+      if (match) return match[1].toLowerCase().replace('jpeg', 'jpg');
+      return mimeToExt(mime);
+    };
+    const safeName = (raw, fallback) => {
+      const cleaned = String(raw || '').replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120);
+      return cleaned || fallback;
+    };
+    const blobToBase64 = (blob) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('FileReader failed'));
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          resolve(result.includes(',') ? result.slice(result.indexOf(',') + 1) : result);
+        };
+        reader.readAsDataURL(blob);
+      });
+    const results = [];
+    for (const candidate of candidates) {
+      if (results.length >= maxArtifacts) break;
+      let blob = null;
+      let mimeType = '';
+      try {
+        if (candidate.url.startsWith('data:image/')) {
+          const response = await fetch(candidate.url);
+          blob = await response.blob();
+        } else if (candidate.url.startsWith('blob:') || /^https?:\/\//i.test(candidate.url)) {
+          const response = await fetch(candidate.url, { credentials: 'include' });
+          if (!response.ok) continue;
+          blob = await response.blob();
+        } else {
+          continue;
+        }
+        mimeType = blob.type || '';
+        if (!mimeType.startsWith('image/')) continue;
+        if (blob.size <= 0 || blob.size > maxBytes) continue;
+        const ext = urlExt(candidate.url, mimeType);
+        const fromDownload = candidate.text && /\.(png|jpe?g|webp|gif)$/i.test(candidate.text)
+          ? candidate.text
+          : '';
+        const fileName = safeName(fromDownload, 'chatgpt-artifact-' + (results.length + 1) + '.' + ext);
+        const contentBase64 = await blobToBase64(blob);
+        results.push({
+          fileName,
+          mimeType,
+          sizeBytes: blob.size,
+          contentBase64,
+          sourceUrl: candidate.url.startsWith('data:') ? undefined : candidate.url,
+          alt: candidate.alt || candidate.text || undefined,
+        });
+      } catch {
+        // Keep scanning candidates; many ChatGPT UI images are placeholders or protected URLs.
+      }
+    }
+    return results;
+  })()`;
+
+  const { result } = await runtime.evaluate({
+    expression,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  const value = result?.value;
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const artifacts: BrowserRunArtifact[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const maybe = item as Partial<BrowserRunArtifact>;
+    if (
+      typeof maybe.fileName !== "string" ||
+      typeof maybe.mimeType !== "string" ||
+      typeof maybe.contentBase64 !== "string" ||
+      typeof maybe.sizeBytes !== "number"
+    ) {
+      continue;
+    }
+    artifacts.push({
+      fileName: maybe.fileName,
+      mimeType: maybe.mimeType,
+      sizeBytes: maybe.sizeBytes,
+      contentBase64: maybe.contentBase64,
+      sourceUrl: typeof maybe.sourceUrl === "string" ? maybe.sourceUrl : undefined,
+      alt: typeof maybe.alt === "string" ? maybe.alt : undefined,
+    });
+  }
+  if (artifacts.length > 0) {
+    logger(`Captured ${artifacts.length} browser artifact${artifacts.length === 1 ? "" : "s"}.`);
+  }
+  return artifacts;
 }
 
 async function _assertNavigatedToHttp(
@@ -1717,11 +1881,20 @@ async function runRemoteBrowserMode(
     const durationMs = Date.now() - startedAt;
     const answerChars = answerText.length;
     const answerTokens = estimateTokenCount(answerMarkdown);
+    const artifacts = options.downloadArtifacts
+      ? await collectBrowserArtifacts(Runtime, logger).catch((error) => {
+          logger(
+            `Artifact capture failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          return [];
+        })
+      : undefined;
 
     return {
       answerText,
       answerMarkdown,
       answerHtml: answerHtml.length > 0 ? answerHtml : undefined,
+      artifacts,
       tookMs: durationMs,
       answerTokens,
       answerChars,

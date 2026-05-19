@@ -175,6 +175,8 @@ export interface RunOracleOptions {
   background?: boolean;
   /** Optional absolute path to save only the assistant's final text output. */
   writeOutputPath?: string;
+  /** Browser-only: optional directory to save generated/downloadable artifacts from ChatGPT. */
+  downloadArtifactsDir?: string;
   /** Number of seconds to wait before timing out, or 'auto' to use model defaults. */
   timeoutSeconds?: number | "auto";
   /** Override HTTP client timeout (milliseconds). */

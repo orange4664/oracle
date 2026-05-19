@@ -223,6 +223,7 @@ export async function createRemoteServer(
         log: automationLogger,
         heartbeatIntervalMs: payload.options.heartbeatIntervalMs,
         verbose: payload.options.verbose,
+        downloadArtifacts: payload.options.downloadArtifacts,
       });
 
       sendEvent({ type: "result", result: sanitizeResult(result) });
@@ -377,6 +378,7 @@ function sanitizeResult(result: BrowserRunResult): BrowserRunResult {
     answerText: result.answerText,
     answerMarkdown: result.answerMarkdown,
     answerHtml: result.answerHtml,
+    artifacts: result.artifacts,
     tookMs: result.tookMs,
     answerTokens: result.answerTokens,
     answerChars: result.answerChars,

@@ -3,6 +3,7 @@ import "dotenv/config";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { once } from "node:events";
+import path from "node:path";
 import { Command, Option } from "commander";
 import type { OptionValues } from "commander";
 // Allow `npx @steipete/oracle oracle-mcp` to resolve the MCP server even though npx runs the default binary.
@@ -174,6 +175,8 @@ interface CliOptions extends OptionValues {
   retainHours?: number;
   writeOutput?: string;
   writeOutputPath?: string;
+  downloadArtifacts?: string;
+  downloadArtifactsDir?: string;
 }
 
 type ResolvedCliOptions = Omit<CliOptions, "model"> & {
@@ -181,6 +184,7 @@ type ResolvedCliOptions = Omit<CliOptions, "model"> & {
   models?: ModelName[];
   effectiveModelId?: string;
   writeOutputPath?: string;
+  downloadArtifactsDir?: string;
   previousResponseId?: string;
   followupSessionId?: string;
   followupModel?: string;
@@ -412,6 +416,10 @@ program
   .option(
     "--write-output <path>",
     "Write only the final assistant message to this file (overwrites; multi-model appends .<model> before the extension).",
+  )
+  .option(
+    "--download-artifacts <dir>",
+    "Browser-only: save generated/downloadable ChatGPT artifacts such as images to this directory.",
   )
   .option("--verbose-render", "Show render/TTY diagnostics when replaying sessions.", false)
   .addOption(
@@ -966,6 +974,7 @@ function buildRunOptions(
     background: overrides.background ?? undefined,
     renderPlain: overrides.renderPlain ?? options.renderPlain ?? false,
     writeOutputPath: overrides.writeOutputPath ?? options.writeOutputPath,
+    downloadArtifactsDir: overrides.downloadArtifactsDir ?? options.downloadArtifactsDir,
   };
 }
 
@@ -1191,6 +1200,7 @@ function buildRunOptionsFromMetadata(metadata: SessionMetadata): RunOracleOption
     background: stored.background,
     renderPlain: stored.renderPlain,
     writeOutputPath: stored.writeOutputPath,
+    downloadArtifactsDir: stored.downloadArtifactsDir,
   };
 }
 
@@ -1429,6 +1439,9 @@ async function runRootCommand(options: CliOptions): Promise<void> {
   resolvedOptions.baseUrl = resolvedBaseUrl;
   resolvedOptions.effectiveModelId = effectiveModelId;
   resolvedOptions.writeOutputPath = resolveOutputPath(options.writeOutput, process.cwd());
+  resolvedOptions.downloadArtifactsDir = options.downloadArtifacts
+    ? path.resolve(process.cwd(), options.downloadArtifacts)
+    : undefined;
 
   // Decide whether to block until completion:
   // - explicit --wait / --no-wait wins
@@ -1717,6 +1730,7 @@ async function runRootCommand(options: CliOptions): Promise<void> {
       outputPath: options.output,
       aspectRatio: options.aspect,
       geminiShowThoughts: options.geminiShowThoughts,
+      downloadArtifactsDir: resolvedOptions.downloadArtifactsDir,
     },
     process.cwd(),
     notifications,
