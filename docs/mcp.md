@@ -27,7 +27,7 @@
 ## Launching & usage
 
 - Installed from npm:
-  - One-off: `npx @steipete/oracle oracle-mcp`
+  - One-off: `npx @orange4664/oracle oracle-mcp`
   - Global: `oracle-mcp`
 - From the repo (contributors):
   - `pnpm build`
@@ -38,14 +38,14 @@
     "name": "oracle",
     "type": "stdio",
     "command": "npx",
-    "args": ["@steipete/oracle", "oracle-mcp"]
+    "args": ["@orange4664/oracle", "oracle-mcp"]
   }
   ```
 - Project-scoped Claude (.mcp.json) example:
   ```json
   {
     "mcpServers": {
-      "oracle": { "type": "stdio", "command": "npx", "args": ["@steipete/oracle", "oracle-mcp"] }
+      "oracle": { "type": "stdio", "command": "npx", "args": ["@orange4664/oracle", "oracle-mcp"] }
     }
   }
   ```

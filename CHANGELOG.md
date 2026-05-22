@@ -263,7 +263,7 @@
 
 ### Changed
 
-- Docs: README now explicitly warns against `pnpx @steipete/oracle` (pnpx cache breaks sqlite bindings); use `npx -y @steipete/oracle` instead. Thanks Xuanwo for flagging this.
+- Docs: README now explicitly warns against `pnpx @orange4664/oracle` (pnpx cache breaks sqlite bindings); use `npx -y @orange4664/oracle` instead. Thanks Xuanwo for flagging this.
 - Browser uploads: stick to the single reliable file-input path (no drag/drop fallbacks), wait for the composer to render the new “N files” pill/remove-card UI before sending, and prefer non-image inputs. Thanks Peter for the repros and screenshots that caught the regressions.
 
 ### Fixed
@@ -361,7 +361,7 @@
 ### Fixed
 
 - MCP/API runs now surface 404/405 Responses API failures as “unsupported-endpoint” with actionable guidance (check OPENAI_BASE_URL/Azure setup or use the browser engine) instead of a generic transport error.
-- Publish metadata now declares Node >=20 (engines/devEngines) and drops the implicit bun runtime so `npx @steipete/oracle` no longer fails with EBADDEVENGINES on newer Node versions.
+- Publish metadata now declares Node >=20 (engines/devEngines) and drops the implicit bun runtime so `npx @orange4664/oracle` no longer fails with EBADDEVENGINES on newer Node versions.
 
 ## 0.4.3 — 2025-11-22
 
@@ -381,8 +381,8 @@
 
 ### Fixed
 
-- MCP: `npx @steipete/oracle oracle-mcp` now routes directly to the MCP server (even when npx defaults to the CLI binary) and keeps stdout JSON-only for Cursor/other MCP hosts.
-- Added the missing `@anthropic-ai/tokenizer` runtime dependency so `npx @steipete/oracle oracle-mcp` starts cleanly.
+- MCP: `npx @orange4664/oracle oracle-mcp` now routes directly to the MCP server (even when npx defaults to the CLI binary) and keeps stdout JSON-only for Cursor/other MCP hosts.
+- Added the missing `@anthropic-ai/tokenizer` runtime dependency so `npx @orange4664/oracle oracle-mcp` starts cleanly.
 
 ## 0.4.1 — 2025-11-21
 
@@ -486,7 +486,7 @@
     "name": "oracle",
     "type": "stdio",
     "command": "npx",
-    "args": ["-y", "@steipete/oracle", "oracle-mcp"]
+    "args": ["-y", "@orange4664/oracle", "oracle-mcp"]
   }
   ```
 - Claude Code (global/user scope):  
@@ -498,7 +498,7 @@
       "oracle": {
         "type": "stdio",
         "command": "npx",
-        "args": ["-y", "@steipete/oracle", "oracle-mcp"]
+        "args": ["-y", "@orange4664/oracle", "oracle-mcp"]
       }
     }
   }
@@ -589,7 +589,7 @@ Details
 
 ### Added
 
-- Positional prompt shorthand: `oracle "prompt here"` (and `npx -y @steipete/oracle "..."`) now maps the positional argument to `--prompt` automatically.
+- Positional prompt shorthand: `oracle "prompt here"` (and `npx -y @orange4664/oracle "..."`) now maps the positional argument to `--prompt` automatically.
 
 ### Fixed
 

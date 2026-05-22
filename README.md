@@ -5,9 +5,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@steipete/oracle"><img src="https://img.shields.io/npm/v/@steipete/oracle?style=for-the-badge&logo=npm&logoColor=white" alt="npm version"></a>
-  <a href="https://github.com/steipete/oracle/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/steipete/oracle/ci.yml?branch=main&style=for-the-badge&label=tests" alt="CI Status"></a>
-  <a href="https://github.com/steipete/oracle"><img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge" alt="Platforms"></a>
+  <a href="https://www.npmjs.com/package/@orange4664/oracle"><img src="https://img.shields.io/npm/v/@orange4664/oracle?style=for-the-badge&logo=npm&logoColor=white" alt="npm version"></a>
+  <a href="https://github.com/orange4664/oracle/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/orange4664/oracle/ci.yml?branch=main&style=for-the-badge&label=tests" alt="CI Status"></a>
+  <a href="https://github.com/orange4664/oracle"><img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge" alt="Platforms"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License"></a>
 </p>
 
@@ -91,43 +91,43 @@ oracle --engine browser --browser-manual-login \
 
 ## Quick start
 
-Install globally: `npm install -g @steipete/oracle`
-Homebrew: `brew install steipete/tap/oracle`
+Install globally: `npm install -g @orange4664/oracle`
+Homebrew: `brew install orange4664/tap/oracle`
 
-Requires Node 22+. Or use `npx -y @steipete/oracle …` (or pnpx).
+Requires Node 22+. Or use `npx -y @orange4664/oracle …` (or pnpx).
 
 ```bash
 # Copy the bundle and paste into ChatGPT
-npx -y @steipete/oracle --render --copy -p "Review the TS data layer for schema drift" --file "src/**/*.ts,*/*.test.ts"
+npx -y @orange4664/oracle --render --copy -p "Review the TS data layer for schema drift" --file "src/**/*.ts,*/*.test.ts"
 
 # Minimal API run (expects OPENAI_API_KEY in your env)
-npx -y @steipete/oracle -p "Write a concise architecture note for the storage adapters" --file src/storage/README.md
+npx -y @orange4664/oracle -p "Write a concise architecture note for the storage adapters" --file src/storage/README.md
 
 # Multi-model API run
-npx -y @steipete/oracle -p "Cross-check the data layer assumptions" --models gpt-5.1-pro,gemini-3-pro --file "src/**/*.ts"
+npx -y @orange4664/oracle -p "Cross-check the data layer assumptions" --models gpt-5.1-pro,gemini-3-pro --file "src/**/*.ts"
 
 # Follow up from an existing OpenAI/Azure session id
-npx -y @steipete/oracle --engine api --model gpt-5.2-pro --followup release-readiness-audit --followup-model gpt-5.2-pro -p "Re-evaluate with this new context" --file "src/**/*.ts"
+npx -y @orange4664/oracle --engine api --model gpt-5.2-pro --followup release-readiness-audit --followup-model gpt-5.2-pro -p "Re-evaluate with this new context" --file "src/**/*.ts"
 
 # Follow up directly from an OpenAI Responses API id
-npx -y @steipete/oracle --engine api --model gpt-5.2-pro --followup resp_abc1234567890 -p "Continue from this response" --file docs/notes.md
+npx -y @orange4664/oracle --engine api --model gpt-5.2-pro --followup resp_abc1234567890 -p "Continue from this response" --file docs/notes.md
 
 # Preview without spending tokens
-npx -y @steipete/oracle --dry-run summary -p "Check release notes" --file docs/release-notes.md
+npx -y @orange4664/oracle --dry-run summary -p "Check release notes" --file docs/release-notes.md
 
 # Browser run (no API key, will open ChatGPT)
-npx -y @steipete/oracle --engine browser -p "Walk through the UI smoke test" --file "src/**/*.ts"
+npx -y @orange4664/oracle --engine browser -p "Walk through the UI smoke test" --file "src/**/*.ts"
 
 # Gemini browser mode (no API key; uses Chrome cookies from gemini.google.com)
-npx -y @steipete/oracle --engine browser --model gemini-3-pro --prompt "a cute robot holding a banana" --generate-image out.jpg --aspect 1:1
+npx -y @orange4664/oracle --engine browser --model gemini-3-pro --prompt "a cute robot holding a banana" --generate-image out.jpg --aspect 1:1
 
 # Sessions (list and replay)
-npx -y @steipete/oracle status --hours 72
-npx -y @steipete/oracle session <id> --render
-npx -y @steipete/oracle restart <id>
+npx -y @orange4664/oracle status --hours 72
+npx -y @orange4664/oracle session <id> --render
+npx -y @orange4664/oracle restart <id>
 
 # TUI (interactive, only for humans)
-npx -y @steipete/oracle tui
+npx -y @orange4664/oracle tui
 ```
 
 Engine auto-picks API when `OPENAI_API_KEY` is set, otherwise browser; browser is stable on macOS and works on Linux and Windows. On Linux pass `--browser-chrome-path/--browser-cookie-path` if detection fails; on Windows prefer `--browser-manual-login` or inline cookies if decryption is blocked.
@@ -145,7 +145,7 @@ Engine auto-picks API when `OPENAI_API_KEY` is set, otherwise browser; browser i
 - AGENTS.md/CLAUDE.md:
   ```
   - Oracle bundles a prompt plus the right files so another AI (GPT 5 Pro + more) can answer. Use when stuck/bugs/reviewing.
-  - Run `npx -y @steipete/oracle --help` once per session before first use.
+  - Run `npx -y @orange4664/oracle --help` once per session before first use.
   ```
 - Tip: set `browser.chatgptUrl` in config (or `--chatgpt-url`) to a dedicated ChatGPT project folder so browser runs don’t clutter your main history.
 
@@ -159,10 +159,10 @@ Engine auto-picks API when `OPENAI_API_KEY` is set, otherwise browser; browser i
 **MCP**
 
 - Run the stdio server via `oracle-mcp`.
-- Configure clients via [steipete/mcporter](https://github.com/steipete/mcporter) or `.mcp.json`; see [docs/mcp.md](docs/mcp.md) for connection examples.
+- Configure clients via [orange4664/mcporter](https://github.com/orange4664/mcporter) or `.mcp.json`; see [docs/mcp.md](docs/mcp.md) for connection examples.
 
 ```bash
-npx -y @steipete/oracle oracle-mcp
+npx -y @orange4664/oracle oracle-mcp
 ```
 
 - Cursor setup (MCP): drop a `.cursor/mcp.json` like below, then pick “oracle” in Cursor’s MCP sources. See https://cursor.com/docs/context/mcp for UI steps.
@@ -336,7 +336,7 @@ oracle status --clear --hours 168
 If you’re looking for an even more powerful context-management tool, check out https://repoprompt.com  
 Name inspired by: https://ampcode.com/news/oracle
 
-## More free stuff from steipete
+## More free stuff from orange4664
 
 - ✂️ [Trimmy](https://trimmy.app) — “Paste once, run once.” Flatten multi-line shell snippets so they paste and run.
 - 🟦🟩 [CodexBar](https://codexbar.app) — Keep Codex token windows visible in your macOS menu bar.

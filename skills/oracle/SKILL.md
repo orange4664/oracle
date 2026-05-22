@@ -1,6 +1,6 @@
 ---
 name: oracle
-description: Use the @steipete/oracle CLI to bundle a prompt plus the right files and get a second-model review (API or browser) for debugging, refactors, design checks, or cross-validation.
+description: Use the @orange4664/oracle CLI to bundle a prompt plus the right files and get a second-model review (API or browser) for debugging, refactors, design checks, or cross-validation.
 ---
 
 # Oracle (CLI) — best use
@@ -27,20 +27,20 @@ Recommended defaults:
 ## Commands (preferred)
 
 - Show help (once/session):
-  - `npx -y @steipete/oracle --help`
+  - `npx -y @orange4664/oracle --help`
 
 - Preview (no tokens):
-  - `npx -y @steipete/oracle --dry-run summary -p "<task>" --file "src/**" --file "!**/*.test.*"`
-  - `npx -y @steipete/oracle --dry-run full -p "<task>" --file "src/**"`
+  - `npx -y @orange4664/oracle --dry-run summary -p "<task>" --file "src/**" --file "!**/*.test.*"`
+  - `npx -y @orange4664/oracle --dry-run full -p "<task>" --file "src/**"`
 
 - Token/cost sanity:
-  - `npx -y @steipete/oracle --dry-run summary --files-report -p "<task>" --file "src/**"`
+  - `npx -y @orange4664/oracle --dry-run summary --files-report -p "<task>" --file "src/**"`
 
 - Browser run (main path; long-running is normal):
-  - `npx -y @steipete/oracle --engine browser --model gpt-5.4-pro -p "<task>" --file "src/**"`
+  - `npx -y @orange4664/oracle --engine browser --model gpt-5.4-pro -p "<task>" --file "src/**"`
 
 - Manual paste fallback (assemble bundle, copy to clipboard):
-  - `npx -y @steipete/oracle --render --copy -p "<task>" --file "src/**"`
+  - `npx -y @orange4664/oracle --render --copy -p "<task>" --file "src/**"`
   - Note: `--copy` is a hidden alias for `--copy-markdown`.
 
 ## Attaching files (`--file`)
@@ -66,7 +66,7 @@ Recommended defaults:
 
 - Target: keep total input under ~196k tokens.
 - Use `--files-report` (and/or `--dry-run json`) to spot the token hogs before spending.
-- If you need hidden/advanced knobs: `npx -y @steipete/oracle --help --verbose`.
+- If you need hidden/advanced knobs: `npx -y @orange4664/oracle --help --verbose`.
 
 ## Engines (API vs browser)
 

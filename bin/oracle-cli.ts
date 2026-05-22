@@ -6,7 +6,7 @@ import { once } from "node:events";
 import path from "node:path";
 import { Command, Option } from "commander";
 import type { OptionValues } from "commander";
-// Allow `npx @steipete/oracle oracle-mcp` to resolve the MCP server even though npx runs the default binary.
+// Allow `npx @orange4664/oracle oracle-mcp` to resolve the MCP server even though npx runs the default binary.
 if (process.argv[2] === "oracle-mcp") {
   const { startMcpServer } = await import("../src/mcp/server.js");
   await startMcpServer();

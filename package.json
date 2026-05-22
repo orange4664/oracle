@@ -1,17 +1,17 @@
 {
-  "name": "@steipete/oracle",
+  "name": "@orange4664/oracle",
   "version": "0.9.0",
   "description": "CLI wrapper around OpenAI Responses API with GPT-5.4 Pro, GPT-5.4, GPT-5.2, GPT-5.1, and GPT-5.1 Codex high reasoning modes.",
   "keywords": [],
-  "homepage": "https://github.com/steipete/oracle#readme",
+  "homepage": "https://github.com/orange4664/oracle#readme",
   "bugs": {
-    "url": "https://github.com/steipete/oracle/issues"
+    "url": "https://github.com/orange4664/oracle/issues"
   },
   "license": "MIT",
-  "author": "",
+  "author": "orange4664 <102470751+orange4664@users.noreply.github.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/steipete/oracle.git"
+    "url": "git+https://github.com/orange4664/oracle.git"
   },
   "bin": {
     "oracle": "dist/bin/oracle-cli.js",

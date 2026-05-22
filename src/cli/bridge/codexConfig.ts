@@ -53,7 +53,7 @@ export function formatCodexMcpSnippet({
     "# If you prefer npx:",
     "# [mcp.servers.oracle]",
     '# command = "npx"',
-    '# args = ["-y", "@steipete/oracle", "oracle-mcp"]',
+    '# args = ["-y", "@orange4664/oracle", "oracle-mcp"]',
     `# env = { ORACLE_ENGINE = "browser", ORACLE_REMOTE_HOST = "${escapeTomlString(hostValue)}", ORACLE_REMOTE_TOKEN = "${escapeTomlString(tokenValue)}" }`,
   ].join("\n");
 }
